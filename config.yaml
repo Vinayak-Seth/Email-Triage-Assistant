@@ -1,0 +1,32 @@
+# Configuration for the Email Triage Assistant.
+# Change the model here if Groq retires it (see https://console.groq.com/docs/models).
+
+llm:
+  model: openai/gpt-oss-120b       # lighter/faster alternative: openai/gpt-oss-20b
+  reasoning_effort: low            # gpt-oss reasons before answering; low keeps it fast
+  temperature: 0.2                 # low = consistent labels
+  max_tokens: 2000                 # reasoning tokens count toward this, so keep it generous
+  max_retries: 3                   # per email, with backoff on rate limits
+  workers: 3                       # parallel requests (keep low for free-tier limits)
+
+# name: definition (definitions are injected into the prompt, so this is the single source of truth)
+intents:
+  meeting_request: Asks to schedule, move, or confirm a meeting or call.
+  action_request: Asks the recipient to do or deliver something (task, fix, document).
+  question: Asks for information or a decision, with no larger task attached.
+  complaint: Expresses dissatisfaction, reports a problem with a product or service.
+  invoice_payment: Invoices, payment reminders, receipts, billing.
+  job_opportunity: Recruiting, interviews, referrals, internships.
+  newsletter_promo: Newsletters, marketing, sales, discounts.
+  fyi_update: Informational notice or automated notification; no real action needed.
+  spam_phishing: Scam, phishing, or suspicious unsolicited email.
+  other: Anything that fits none of the above.
+
+priorities: [urgent, high, normal, low]   # ordered most -> least urgent
+
+reply:
+  default_tone: professional
+  tones: [professional, friendly, concise]
+
+data:
+  sample_emails: data/sample_emails.json
