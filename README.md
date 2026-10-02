@@ -10,8 +10,7 @@ An NLP application that reads an email and tells you **what it is, how urgent it
 
 | | Link |
 |---|---|
-| 🌐 **Live app (Streamlit Cloud)** | `https://YOUR-APP-NAME.streamlit.app` |
-| 🎥 **Video walkthrough** | `https://YOUR-VIDEO-LINK` |
+| 🌐 **Live app (Streamlit Cloud)** | https://email-triage-assistant-xjmgbywuixgbmb2p5yajd4.streamlit.app/ |
 | 💻 **Source code** | `https://github.com/Vinayak-Seth/email-triage-assistant` |
 
 > The hosted demo runs the **Sample inbox** and **Try your own email** tabs. The **Live Gmail** tab reads a real mailbox, so it is deliberately available only when the app runs on your own machine (see [Privacy](#-privacy-and-safety)).
