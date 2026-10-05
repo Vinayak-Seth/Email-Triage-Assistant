@@ -1,6 +1,8 @@
 """Streamlit UI for the Email Triage Assistant."""
 import imaplib
 import os
+import re
+import smtplib
 
 import pandas as pd
 import streamlit as st
@@ -26,7 +28,59 @@ def get_api_key() -> str:
     return key or st.sidebar.text_input("Groq API key", type="password")
 
 
-def show_result(res: dict, key: str) -> None:
+AUTOMATED = re.compile(r"(no[-_.]?reply|do[-_.]?not[-_.]?reply|mailer-daemon|bounce|notifications?@|alerts?@)", re.I)
+
+
+def send_block_reason(res: dict, to_addr: str, draft: str) -> str:
+    """Why sending is disabled for this email ('' = allowed)."""
+    if "@" not in to_addr:
+        return "no valid recipient address"
+    if res["intent"] == "spam_phishing":
+        return "suspected spam or phishing"
+    if AUTOMATED.search(to_addr):
+        return "automated sender (no-reply address)"
+    if not draft.strip():
+        return "the draft is empty"
+    if "[Your name]" in draft:
+        return "fill in 'Sign replies as' in the sidebar first"
+    return ""
+
+
+def send_controls(res: dict, email: dict, draft: str) -> None:
+    """Send button with an explicit confirmation step. Sends exactly the text in the draft box."""
+    to_addr = email.get("reply_to", "")
+    sid = abs(hash(email.get("message_id") or f"{email['from']}|{email['subject']}"))
+    sent_key, confirm_key = f"sent_{sid}", f"confirm_{sid}"
+
+    if st.session_state.get(sent_key):
+        st.success(f"✅ Reply sent to {st.session_state[sent_key]}")
+        return
+    reason = send_block_reason(res, to_addr, draft)
+    if reason:
+        st.caption(f"Sending disabled: {reason}.")
+        return
+    if not st.session_state.get(confirm_key):
+        if st.button(f"✉️ Send reply to {to_addr}", key=f"send_{sid}"):
+            st.session_state[confirm_key] = True
+            st.rerun()
+        return
+    st.warning(f"This will really send the text above to **{to_addr}**. Continue?")
+    yes, no = st.columns(2)
+    if yes.button("Confirm and send", type="primary", key=f"yes_{sid}"):
+        try:
+            mail_client.send_reply(to_addr, email["subject"], draft, email.get("message_id"))
+            st.session_state[sent_key] = to_addr
+        except (smtplib.SMTPException, OSError, ValueError) as err:
+            st.error(f"Could not send: {err}")
+        st.session_state[confirm_key] = False
+        if st.session_state.get(sent_key):
+            st.rerun()
+    if no.button("Cancel", key=f"no_{sid}"):
+        st.session_state[confirm_key] = False
+        st.rerun()
+
+
+def show_result(res: dict, key: str, email: dict | None = None, allow_send: bool = False) -> None:
     if "error" in res:
         st.error(res["error"])
         return
@@ -40,10 +94,13 @@ def show_result(res: dict, key: str) -> None:
             st.markdown(f"- {item}")
     if res["needs_reply"]:
         # key includes the draft text so a new draft is never hidden behind a stale widget
-        st.text_area("Draft reply (editable)", res["reply_draft"], height=200,
-                     key=f"reply_{key}_{abs(hash(res['reply_draft']))}")
+        draft = st.text_area("Draft reply (editable)", res["reply_draft"], height=200,
+                             key=f"reply_{key}_{abs(hash(res['reply_draft']))}")
+        if allow_send and email:
+            send_controls(res, email, draft)
     else:
         st.caption("No reply needed.")
+
 
 def with_sender(res: dict, sender: str) -> dict:
     """Fill the signature at display time, so changing the name needs no new API call."""
@@ -51,7 +108,9 @@ def with_sender(res: dict, sender: str) -> dict:
         return {**res, "reply_draft": res["reply_draft"].replace("[Your name]", sender)}
     return res
 
-def render_results(emails: list[dict], results: list[dict], prefix: str, show_eval: bool) -> None:
+
+def render_results(emails: list[dict], results: list[dict], prefix: str, show_eval: bool,
+                   allow_send: bool = False) -> None:
     """Counts, sorted table, CSV, optional accuracy, and one expander per email."""
     rows = [{
         "Priority": res.get("priority", "error"),
@@ -103,7 +162,7 @@ def render_results(emails: list[dict], results: list[dict], prefix: str, show_ev
             st.caption(f"From: {emails[i]['from']}")
             st.text(emails[i]["body"])
             st.divider()
-            show_result(res, f"{prefix}{i}")
+            show_result(res, f"{prefix}{i}", emails[i], allow_send)
 
 
 # ---------- sidebar ----------
@@ -167,6 +226,8 @@ if live_ready:
         unread_only = c2.checkbox("Unread only")
         force_reply = c3.checkbox("Draft a reply for every email", value=True,
                                   help="Off = the AI skips replies for newsletters and automated mail.")
+        allow_send = st.checkbox("Enable sending replies (off by default)", value=False,
+                                 help="Shows a Send button under each draft. Every send needs a confirmation.")
         go, clear = st.columns([1, 6])
         if go.button("Fetch & triage", type="primary"):
             try:
@@ -192,4 +253,4 @@ if live_ready:
                 with st.spinner(f"Writing {tone} replies for {len(live)} emails..."):
                     cache[cache_key] = triage.triage_batch(client, live, tone, "", force_reply)
             results = [with_sender(r, sender) for r in cache[cache_key]]  # name updates instantly
-            render_results(live, results, "live", show_eval=False)
+            render_results(live, results, "live", show_eval=False, allow_send=allow_send)

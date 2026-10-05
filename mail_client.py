@@ -6,11 +6,14 @@ import email
 import imaplib
 import os
 import re
+import smtplib
 from email.header import decode_header, make_header
-from email.message import Message
+from email.message import EmailMessage, Message
+from email.utils import parseaddr
 from html import unescape
 
 HOST = "imap.gmail.com"
+SMTP_HOST = "smtp.gmail.com"
 MAX_BODY_CHARS = 2000  # keeps prompts small and cheap
 
 
@@ -61,8 +64,27 @@ def fetch_recent(limit: int = 10, unread_only: bool = False) -> list[dict]:
             _, parts = imap.fetch(msg_id, "(BODY.PEEK[])")
             msg = email.message_from_bytes(parts[0][1])
             emails.append({
+                "reply_to": parseaddr(msg.get("Reply-To") or msg.get("From") or "")[1],
+                "message_id": (msg.get("Message-ID") or "").strip(),
                 "from": _decode(msg.get("From")),
                 "subject": _decode(msg.get("Subject")) or "(no subject)",
                 "body": _clean(_body(msg)),
             })
     return emails
+
+
+def send_reply(to_addr: str, subject: str, body: str, in_reply_to: str | None = None) -> None:
+    """Send a plain-text reply from the signed-in Gmail account (same app password as IMAP)."""
+    address, password = credentials()
+    subject = " ".join(subject.split())  # no line breaks in headers
+    msg = EmailMessage()
+    msg["From"] = address
+    msg["To"] = to_addr
+    msg["Subject"] = subject if subject.lower().startswith("re:") else f"Re: {subject}"
+    if in_reply_to:  # keeps the reply in the same Gmail conversation
+        msg["In-Reply-To"] = in_reply_to
+        msg["References"] = in_reply_to
+    msg.set_content(body)
+    with smtplib.SMTP_SSL(SMTP_HOST, 465) as smtp:
+        smtp.login(address, password)
+        smtp.send_message(msg)
