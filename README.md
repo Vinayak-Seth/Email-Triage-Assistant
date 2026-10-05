@@ -17,7 +17,7 @@ Capstone project · Batch F · Repository MUJ-DS-23FE10CDS00500
 
 ## 🚀 What it does
 
-Reads an email and returns its **intent**, **priority**, a **summary**, **action items** and a **draft reply**, using an LLM through the Groq API. Built with Python and Streamlit, with a built-in accuracy check against hand-labelled emails.
+Reads an email and returns its **intent**, **priority**, a **summary**, **action items**, **draft reply** and **sends replies**, using an LLM through the Groq API. Built with Python and Streamlit, with a built-in accuracy check against hand-labelled emails.
 
 | | |
 |---|---|
