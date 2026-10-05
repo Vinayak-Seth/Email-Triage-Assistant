@@ -1,67 +1,51 @@
 # 📧 Email Triage Assistant
 
-Capstone project · Batch F · Repository `MUJ-DS-YOUR_REG_NO`
+NLP project: classifies email **intent**, detects **priority**, summarises, extracts **action items**, and drafts a **reply** using an LLM (Groq API) with a Streamlit UI.
 
-## 👤 Student details
+## How the LLM is used
+One Groq chat-completion call per email in JSON mode. The prompt (`prompts.yaml`) defines the intent taxonomy, a priority rubric, a prompt-injection guard, and the output schema. `triage.py` validates every field so a malformed response can never crash the app.
 
-| | |
+## Files
+| File | Purpose |
 |---|---|
-| **Name** | Vinayak Seth |
-| **Registration Number** | YOUR_REG_NO |
-| **Branch** | Computer Science (Data Science) |
-| **Batch** | F |
-| **GitHub Username** | [@Vinayak-Seth](https://github.com/Vinayak-Seth) |
-| **Training Program** | YOUR_PROGRAM_NAME |
-| **Program Duration** | START_DATE – END_DATE |
-| **Instructor** | INSTRUCTOR_NAME ([@INSTRUCTOR_GITHUB_USERNAME](https://github.com/INSTRUCTOR_GITHUB_USERNAME)) |
-| **Project Title** | Email Triage Assistant: LLM-based intent classification, priority detection and reply drafting |
+| `app.py` | Streamlit UI (sample inbox + custom email) |
+| `mail_client.py` | Read-only Gmail IMAP fetcher (optional live tab, local only) |
+| `triage.py` | Prompt building, Groq call, retries, validation, evaluation |
+| `prompts.yaml` | Prompt file |
+| `config.yaml` | Model, intents, priorities, tones |
+| `data/sample_emails.json` | 15 labelled sample emails |
+| `requirements.txt` | Dependencies |
 
-## 🚀 What it does
-
-Reads an email and returns its **intent**, **priority**, a **summary**, **action items** and a **draft reply**, using an LLM through the Groq API. Built with Python and Streamlit, with a built-in accuracy check against hand-labelled emails.
-
-| | |
-|---|---|
-| 🌐 Live demo | `https://YOUR-APP-NAME.streamlit.app` |
-| 📄 Full documentation | [Documentation.md](Documentation.md) |
-| 🗺️ File and code map | [Structure.md](Structure.md) |
-
-## ⚡ Quick start (Windows PowerShell)
-
+## Run locally (Windows PowerShell)
 ```powershell
+# 1. Get the code
+git clone https://github.com/Vinayak-Seth/email-triage-assistant.git
+cd email-triage-assistant
+
+# 2. Create and activate a virtual environment (Windows PowerShell)
 python -m venv .venv
 .venv\Scripts\Activate.ps1
+#   macOS / Linux:  python3 -m venv .venv && source .venv/bin/activate
+
+# 3. Install dependencies
 pip install -r requirements.txt
-copy .env.example .env      # then put your Groq key in .env
+
+# 4. Add your key
+copy .env.example .env        # macOS / Linux: cp .env.example .env
+#   then open .env and set GROQ_API_KEY=your_key
+
+# 5. Run
 streamlit run app.py
 ```
 
-Get a free key at <https://console.groq.com>. Never commit `.env`. Details, Live Gmail setup and deployment are in [Documentation.md](Documentation.md).
+## Deploy on Streamlit Cloud
+Push to GitHub -> share.streamlit.io -> New app -> select repo, branch `main`, file `app.py` -> Advanced settings -> Secrets:
+```
+GROQ_API_KEY = "your_key"
+```
 
-## 📁 Files
+## Limitations
+Accuracy is measured on 15 hand-labelled emails, a sanity check and not a benchmark. Priority is subjective, so the app also reports "within one level" accuracy.
 
-| File | Purpose |
-|---|---|
-| `app.py` | Streamlit UI |
-| `triage.py` | Prompt building, Groq call, validation, evaluation |
-| `mail_client.py` | Optional Gmail read / send (local only) |
-| `prompts.yaml` | Prompt file |
-| `config.yaml` | Configuration file |
-| `data/sample_emails.json` | 15 hand-labelled sample emails |
-| `requirements.txt` | Dependencies |
-
-## 🛠️ Workflow
-
-Work is planned in GitHub **Issues** and merged into `main` through **pull requests** (branch → pull request → review → merge).
-
-## 🤝 Contributions
-
-Solo project. All work is mine: prompt design, LLM integration, Streamlit UI, testing, documentation and deployment.
-
-## 📅 Weekly progress
-
-| Week | Update | Link |
-|---|---|---|
-| 1 | | |
-| 2 | | |
-| 3 | | |
+## Live Gmail (optional, local only)
+Add `GMAIL_ADDRESS` and `GMAIL_APP_PASSWORD` (a Google app password, needs 2-Step Verification on a personal @gmail.com account) to `.env`. A "Live Gmail" tab appears. It is read-only. Do not add these to Streamlit Cloud secrets: anyone with the app link could then read your inbox.
