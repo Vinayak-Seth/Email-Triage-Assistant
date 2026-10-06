@@ -164,17 +164,26 @@ Changing the sidebar affects reply drafts only. Intent, priority, summary and ac
 Reads your most recent real emails over IMAP and triages them. Fetching is **read-only**: it never deletes, moves, or marks emails as read. Sending is a separate, opt-in feature (below).
 
 1. Use a personal `@gmail.com` account. Google Workspace (work or school) accounts cannot create app passwords.
-2. Turn on **2-Step Verification** in your Google Account, then create an app password at <https://myaccount.google.com/apppasswords>.
-3. Add to your local `.env`:
+2. Turn on **2-Step Verification**: Google Account → Security → 2-Step Verification (a phone number is enough).
+3. Create an app password: open <https://myaccount.google.com/apppasswords>, name it `Email Triage`, click **Create**, and copy the 16-character code. Google shows it only once.
+4. In the project folder (next to `app.py`), copy `.env.example` to `.env` and set:
    ```
    GMAIL_ADDRESS=yourname@gmail.com
    GMAIL_APP_PASSWORD=your16charcode
    ```
-4. Restart the app. The **📬 Live Gmail** tab appears. Choose how many emails, then click **Fetch & triage**.
+   Use your full Gmail address. Don't add quotes or spaces around `=`, and don't use your normal Google password.
+5. Restart the app (Ctrl+C, then `streamlit run app.py`) and open `http://localhost:8501`. The **📬 Live Gmail** tab appears.
 
 **Sending replies (off by default):** tick **Enable sending replies**, edit a draft if needed, click **Send reply**, then **Confirm and send**. Replies are sent from your Gmail account over SMTP with the same app password and stay in the original conversation. Safeguards: nothing is sent without confirmation, and sending is disabled for suspected spam/phishing, no-reply addresses, empty drafts, and drafts still containing the `[Your name]` placeholder. Always read an AI draft before sending.
 
 Once emails are fetched, changing the **name** updates every reply instantly. Changing the **tone** regenerates replies automatically and remembers each tone for the session.
+
+| Problem | Fix |
+|---|---|
+| The tab doesn't appear | `.env` is missing, mistyped, or saved in the wrong folder; or you didn't restart the app; or you're on the deployed link, which never shows it |
+| The App passwords page says "setting not available" | 2-Step Verification is off or uses only security keys, or the account is a Workspace or Advanced Protection account |
+| "Could not read Gmail" | Wrong address or app password. Create a new app password |
+| Sending fails but reading works | Google is blocking SMTP for that account. Reading still works |
 
 ## ☁️ Deploy to Streamlit Cloud
 
