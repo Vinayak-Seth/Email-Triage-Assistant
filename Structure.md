@@ -5,7 +5,7 @@ A map of this repository for new collaborators. Read it first, then follow the [
 ## 1. Folder structure
 
 ```
-MUJ-DS-YOUR_REG_NO/
+MUJ-DS-23FE10CDS00500/
 │
 ├── app.py                      # UI layer: Streamlit app (3 tabs, sidebar, results display, send controls)
 ├── triage.py                   # LLM layer: prompt building, Groq call, validation, batching, evaluation
