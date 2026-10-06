@@ -12,17 +12,11 @@ An NLP application that reads an email and tells you **what it is, how urgent it
 
 | | Link |
 |---|---|
-| 🌐 **Live app (Streamlit Cloud)** | `https://YOUR-APP-NAME.streamlit.app` |
-| 🎥 **Video walkthrough** | `https://YOUR-VIDEO-LINK` |
-| 💻 **Source code** | `https://github.com/Vinayak-Seth/MUJ-DS-YOUR_REG_NO` |
+| 🌐 **Live app (Streamlit Cloud)** | https://email-triage-assistant-xjmgbywuixgbmb2p5yajd4.streamlit.app/ |
+| 💻 **Source code** | https://github.com/Vinayak-Seth/23FE1CDS00500 |
 
 > The hosted demo runs the **Sample inbox** and **Try your own email** tabs. The **Live Gmail** tab reads a real mailbox, so it is deliberately available only when the app runs on your own machine (see [Privacy](#-privacy-and-safety)).
 
-### Screenshots
-<!-- Add screenshots to screenshots/, then uncomment: -->
-<!-- ![Sample inbox](screenshots/sample_inbox.png) -->
-<!-- ![Email detail and reply draft](screenshots/email_detail.png) -->
-<!-- ![Live Gmail tab](screenshots/live_gmail.png) -->
 
 ---
 
@@ -237,5 +231,3 @@ Python · Streamlit · Groq API (`openai/gpt-oss-120b`) · PyYAML · pandas · p
 ## 👤 Author
 
 **Vinayak Seth** · GitHub: [@Vinayak-Seth](https://github.com/Vinayak-Seth)
-
-Built as a solo project for an NLP course: *LLM integration through API calls, with a prompt file and configuration file.*
